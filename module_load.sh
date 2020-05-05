@@ -3,6 +3,9 @@
 echo "====================LOAD GCC MODULE========================"
 module load compilers/gnu-5.4.0
 
+echo "====================LOAD CUDA MODULE======================="
+module load libraries/cuda
+
 echo "======================MAKE CLEAN==========================="
 make clean
 
