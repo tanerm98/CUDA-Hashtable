@@ -7,6 +7,59 @@
 
 #include "gpu_hashtable.hpp"
 
+__global__ void get_keys (int *new_keys, int *new_values, int numKeys, key_value_pair *bucket_1, key_value_pair *bucket_2, int bucket_size) {
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int i, hash;
+
+    // Las sa ruleze un numar de threaduri egal cu numarul de perechi
+    if (numKeys <= idx) {
+        return;
+    }
+
+    // Incerc sa inserez in pozitia data de una dintre cele 3 functii de hash
+    hash = hash1 (new_keys[idx], bucket_size);
+    if (new_keys[idx] == bucket_1[hash].key) {
+        new_values[idx] = bucket_1[hash].value;
+        return;
+    }
+    if (new_keys[idx] == bucket_2[hash].key) {
+        new_values[idx] = bucket_2[hash].value;
+        return;
+    }
+
+    hash = hash2 (new_keys[idx], bucket_size);
+    if (new_keys[idx] == bucket_1[hash].key) {
+        new_values[idx] = bucket_1[hash].value;
+        return;
+    }
+    if (new_keys[idx] == bucket_2[hash].key) {
+        new_values[idx] = bucket_2[hash].value;
+        return;
+    }
+
+    hash = hash3 (new_keys[idx], bucket_size);
+    if (new_keys[idx] == bucket_1[hash].key) {
+        new_values[idx] = bucket_1[hash].value;
+        return;
+    }
+    if (new_keys[idx] == bucket_2[hash].key) {
+        new_values[idx] = bucket_2[hash].value;
+        return;
+    }
+
+    // Daca nicio functie de hash nu a functionat, inserez in orice loc liber gasesc
+    for (i = 0; i < bucket_size; i++) {
+        if (new_keys[idx] == bucket_1[i].key) {
+            new_values[idx] = bucket_1[hash].value;
+            return;
+        }
+        if (new_keys[idx] == bucket_2[i].key) {
+            new_values[idx] = bucket_2[hash].value;
+            return;
+        }
+    }
+}
+
 __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_value_pair *bucket_1, key_value_pair *bucket_2, int bucket_size) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int i, hash, old;
@@ -195,15 +248,17 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	int *new_keys;
 	int *new_values;
 
-	int size = numKeys * sizeof (int);
 	new_keys = 0;
 	new_values = 0;
 
-	cudaMalloc (&new_keys, size);
-    cudaMalloc (&new_values, size);
+	cudaMalloc (&new_keys, numKeys * sizeof (int));
+	cudaMemset (&new_keys, 0, numKeys * sizeof (int));
 
-    cudaMemcpy (new_keys, keys, size, cudaMemcpyHostToDevice);
-    cudaMemcpy (new_values, values, size, cudaMemcpyHostToDevice);
+    cudaMalloc (&new_values, numKeys * sizeof (int));
+    cudaMemset (&new_values, 0, numKeys * sizeof (int));
+
+    cudaMemcpy (new_keys, keys, numKeys * sizeof (int), cudaMemcpyHostToDevice);
+    cudaMemcpy (new_values, values, numKeys * sizeof (int), cudaMemcpyHostToDevice);
 
     // Daca noile chei nu incap, fac reshape pentru a avea un load factor de 66% dupa adaugarea noilor chei
     if (free_size < numKeys) {
@@ -230,7 +285,36 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 /* GET BATCH
  */
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
-	return NULL;
+	int blocks_number;
+
+	// Aloc memorie pentru chei si valori in VRAM
+	int *new_keys;
+	int *new_values;
+
+	new_keys = 0;
+	new_values = 0;
+
+	cudaMalloc (&new_keys, numKeys * sizeof (int));
+    cudaMemset (&new_keys, 0, numKeys * sizeof (int));
+
+    cudaMallocManaged (&new_values, numKeys * sizeof (int));
+    cudaMemset (&new_values, 0, numKeys * sizeof (int));
+
+	// Copiez cheile in VRAM
+    cudaMemcpy (new_keys, keys, numKeys * sizeof (int), cudaMemcpyHostToDevice);
+
+    // Calculez cate blocuri vor rula
+    blocks_number = numKeys / THREADS_NUMBER + 1;
+
+	get_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, total_size / 2);
+
+    // Astept ca toate blocurile sa se termine
+	cudaDeviceSynchronize();
+
+	// Sterg din memoria device-ului perechile cheie - valoare
+    cudaFree (new_keys);
+
+	return new_values;
 }
 
 /* GET LOAD FACTOR
