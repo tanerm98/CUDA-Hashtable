@@ -59,6 +59,7 @@ for program in programs:
         
         try:
             output = subprocess.check_output(['./' + program, str(testEntry["numEntries"]), str(testEntry["numChunks"])])
+            print("the output is: ", output, "\n---------------------------------------------------------------\n")
             lines = str(output).split("\n")
             
             testPoints = 0
