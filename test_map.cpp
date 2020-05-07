@@ -70,17 +70,29 @@ int main(int argc, char **argv)
 	HASH_INIT;
 	
 	int chunkSize = numKeys / numChunks;
+
+	cout << "chunk size is " << chunkSize << endl;
+
 	HASH_RESERVE(chunkSize);
+
+	// free_size = 2000
+	// total_size = 2000
+	// chunk_size = 1000
 	
 	// perform INSERT and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
 		
 		int* keysStart = &vecKeys[chunkStart];
 		int* valuesStart = &vecValues[chunkStart];
-		
+
 		begin = clock();
 		// insert stage
-		HASH_BATCH_INSERT(keysStart, valuesStart, chunkSize);
+		bool x = HASH_BATCH_INSERT(keysStart, valuesStart, chunkSize);
+		if (x) {
+			cout << "e true ma!\n";
+		} else {
+			cout << "e false ma!\n";
+		}
 		elapsedTime = double(clock() - begin) / CLOCKS_PER_SEC;
 		
 		cout << "HASH_BATCH_INSERT, " << chunkSize

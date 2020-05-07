@@ -242,6 +242,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 /* INSERT BATCH
  */
 bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
+
 	int blocks_number;
 
 	// Mut perechile cheie - valoare in memoria device-ului
@@ -290,6 +291,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
 	// Aloc memorie pentru chei si valori in VRAM
 	int *new_keys;
 	int *new_values;
+	int *results;
 
 	new_keys = 0;
 	new_values = 0;
@@ -311,10 +313,15 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
     // Astept ca toate blocurile sa se termine
 	cudaDeviceSynchronize();
 
+	// Copiez in memoria host-ului
+	results = (int*) malloc (numKeys * sizeof (int));
+    cudaMemcpy (results, new_values, numKeys * sizeof (int), cudaMemcpyDeviceToHost);
+
 	// Sterg din memoria device-ului perechile cheie - valoare
     cudaFree (new_keys);
+    cudaFree (new_values);
 
-	return new_values;
+    return results;
 }
 
 /* GET LOAD FACTOR
