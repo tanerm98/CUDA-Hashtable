@@ -10,11 +10,21 @@
 /* INIT HASH
  */
 GpuHashTable::GpuHashTable(int size) {
+	total_size = size;
+	free_size = size;
+
+	cudaMalloc (&bucket_1, size * sizeof (key_value_pair));
+	cudaMemset (&bucket_1, 0, size * sizeof (key_value_pair));
+
+	cudaMalloc (&bucket_2, size * sizeof (key_value_pair));
+    cudaMemset (&bucket_2, 0, size * sizeof (key_value_pair));
 }
 
 /* DESTROY HASH
  */
 GpuHashTable::~GpuHashTable() {
+	cudaFree(bucket_1);
+	cudaFree(bucket_2);
 }
 
 /* RESHAPE HASH

@@ -74,12 +74,24 @@ int hash3(int data, int limit) {
 	return ((long)abs(data) * primeList[70]) % primeList[93] % limit;
 }
 
+// pereche cheie - valoare
+struct key_value_pair {
+	int32_t key;
+	int32_t value;
+};
+
 //
 // GPU HashTable
 //
 class GpuHashTable
 {
 	public:
+		int total_size;
+		int free_size;
+
+		key_value_pair *bucket_1;
+		key_value_pair *bucket_2;
+
 		GpuHashTable(int size);
 		void reshape(int sizeReshape);
 		
