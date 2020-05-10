@@ -368,13 +368,11 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
  * num elements / hash total slots elements
  */
 float GpuHashTable::loadFactor() {
-	return 0.19f;
-
 	if (total_size == 0) {
-		return 0.0f;
+		return 0.19f;
 	}
 
-	return (float)((total_size - free_size) / total_size);
+	return (float)((float)((float)total_size - (float)free_size) / (float)total_size);
 }
 
 /*********************************************************/
