@@ -196,6 +196,7 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 /* INIT HASH
  */
 GpuHashTable::GpuHashTable(int size) {
+	int rc;
 
 	// Sunt 2 bucketuri, deci in total avem (2 * size) spatii pentru perechi cheie - valoare
 	total_size = size * 2;
@@ -206,10 +207,14 @@ GpuHashTable::GpuHashTable(int size) {
 	bucket_2 = 0;
 
 	// Aloc memorie pentru fiecare bucket si il setez la 0
-	cudaMalloc (&bucket_1, size * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_1, size * sizeof (key_value_pair));
+	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_1!");
+
 	cudaMemset (&bucket_1, 0, size * sizeof (key_value_pair));
 
-	cudaMalloc (&bucket_2, size * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_2, size * sizeof (key_value_pair));
+	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_2!");
+
     cudaMemset (&bucket_2, 0, size * sizeof (key_value_pair));
 }
 
@@ -223,6 +228,7 @@ GpuHashTable::~GpuHashTable() {
 /* RESHAPE HASH
  */
 void GpuHashTable::reshape(int numBucketsReshape) {
+	int rc;
 	int blocks_number;
 
 	// Verific daca marimea ceruta este valida
@@ -238,10 +244,12 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	bucket_2_new = 0;
 
 	// Aloc memorie pentru cele 2 noi bucket-uri
-	cudaMalloc (&bucket_1_new, numBucketsReshape * sizeof (key_value_pair));
-    cudaMemset (&bucket_2_new, 0, numBucketsReshape * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_1_new, numBucketsReshape * sizeof (key_value_pair));
+	DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_1_new!");
+    cudaMemset (&bucket_1_new, 0, numBucketsReshape * sizeof (key_value_pair));
 
-    cudaMalloc (&bucket_1_new, numBucketsReshape * sizeof (key_value_pair));
+    rc = cudaMalloc (&bucket_2_new, numBucketsReshape * sizeof (key_value_pair));
+    DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_2_new!");
     cudaMemset (&bucket_2_new, 0, numBucketsReshape * sizeof (key_value_pair));
 
 	// Calculez cate blocuri vor rula
@@ -269,6 +277,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 /* INSERT BATCH
  */
 bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
+	int rc;
 	int blocks_number;
 
 	// Mut perechile cheie - valoare in memoria device-ului
@@ -278,10 +287,12 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	new_keys = 0;
 	new_values = 0;
 
-	cudaMalloc (&new_keys, numKeys * sizeof (int));
+	rc = cudaMalloc (&new_keys, numKeys * sizeof (int));
+	DIE (rc != cudaSuccess, "Eroare in insertBatch la alocare new_keys!");
 	cudaMemset (&new_keys, 0, numKeys * sizeof (int));
 
-    cudaMalloc (&new_values, numKeys * sizeof (int));
+    rc = cudaMalloc (&new_values, numKeys * sizeof (int));
+    DIE (rc != cudaSuccess, "Eroare in insertBatch la alocare new_values!");
     cudaMemset (&new_values, 0, numKeys * sizeof (int));
 
     cudaMemcpy (new_keys, keys, numKeys * sizeof (int), cudaMemcpyHostToDevice);
@@ -312,6 +323,7 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 /* GET BATCH
  */
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
+	int rc;
 	int blocks_number;
 
 	// Aloc memorie pentru chei si valori in VRAM
@@ -322,10 +334,12 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
 	new_keys = 0;
 	new_values = 0;
 
-	cudaMalloc (&new_keys, numKeys * sizeof (int));
+	rc = cudaMalloc (&new_keys, numKeys * sizeof (int));
+    DIE (rc != cudaSuccess, "Eroare in getBatch la alocare new_keys!");
     cudaMemset (&new_keys, 0, numKeys * sizeof (int));
 
     cudaMalloc (&new_values, numKeys * sizeof (int));
+    DIE (rc != cudaSuccess, "Eroare in getBatch la alocare new_values!");
     cudaMemset (&new_values, 0, numKeys * sizeof (int));
 
 	// Copiez cheile in VRAM
