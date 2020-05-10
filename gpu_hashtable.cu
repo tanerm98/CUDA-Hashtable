@@ -322,7 +322,7 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 
     // Daca cu noile chei se umple hashmapul mai mult de 75%, fac reshape pentru a avea un load factor de 50% dupa adaugarea noilor chei
     if ((total_size - free_size + numKeys) > ((float)((float)(95.00f / 100.00f) * (float)total_size))) {
-        reshape ((total_size - free_size + numKeys) * 100 / 60);
+        reshape ((total_size - free_size + numKeys) * 100 / 80);
     }
 
 	// Calculez cate blocuri vor rula
