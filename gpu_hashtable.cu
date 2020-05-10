@@ -288,6 +288,7 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
     for(int i = 0; i < total_size / 2; i++) {
         if (bucket[i].key == bucket[i].value) {
             egal++;
+            cout << bucket[i].key << " == " << bucket[i].value << endl;
         } else {
             not_egal++;
             if (not_egal <= 50) {

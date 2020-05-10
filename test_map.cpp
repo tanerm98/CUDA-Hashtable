@@ -30,7 +30,7 @@ void fillRandom(vector<int> &vecKeys, vector<int> &vecValues, int numEntries) {
 	vecKeys.reserve(numEntries);
 	vecValues.reserve(numEntries);
 
-	for(int i = 0; i < numEntries; i++) {
+	for(int i = 1; i <= numEntries; i++) {
 		vecKeys.push_back(i);
 		vecValues.push_back(i);
 	}
