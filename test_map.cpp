@@ -72,7 +72,6 @@ int main(int argc, char **argv)
 	int chunkSize = numKeys / numChunks;
 	HASH_RESERVE(chunkSize);
 
-	/*
 	// perform INSERT and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
 
@@ -88,7 +87,8 @@ int main(int argc, char **argv)
 		<< ", " << chunkSize / elapsedTime / 1000000
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
 	}
-	
+
+	/*
 	// perform INSERT for update validation
 	int chunkSizeUpdate = min(64, numKeys);
 	for(int chunkStart = 0; chunkStart < chunkSizeUpdate; chunkStart++) {
