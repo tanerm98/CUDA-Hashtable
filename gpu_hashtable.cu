@@ -72,9 +72,6 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
         return;
     }
 
-    bucket_1[idx].value = 19;
-    bucket_1[idx].key = 19;
-
 	// Incerc sa inserez in pozitia data de una dintre cele 3 functii de hash
 	hash = hash1 (new_keys[idx], bucket_size);
 	old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
@@ -126,6 +123,9 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
             return;
         }
     }
+
+    bucket_1[idx].value = -19;
+    bucket_1[idx].key = -19;
 }
 
 
