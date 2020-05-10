@@ -321,8 +321,8 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
     cudaMemcpy (new_values, values, numKeys * sizeof (int), cudaMemcpyHostToDevice);
 
     // Daca cu noile chei se umple hashmapul mai mult de 75%, fac reshape pentru a avea un load factor de 50% dupa adaugarea noilor chei
-    if ((total_size - free_size + numKeys) > ((float)((float)(75.00f / 100.00f) * (float)total_size))) {
-        reshape ((total_size - free_size + numKeys) * 2);
+    if ((total_size - free_size + numKeys) > ((float)((float)(95.00f / 100.00f) * (float)total_size))) {
+        reshape ((total_size - free_size + numKeys) * 150 / 100);
     }
 
 	// Calculez cate blocuri vor rula
