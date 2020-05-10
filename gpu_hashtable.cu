@@ -198,24 +198,24 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 GpuHashTable::GpuHashTable(int size) {
 	int rc;
 
-	// Sunt 2 bucketuri, deci in total avem (2 * size) spatii pentru perechi cheie - valoare
-	total_size = size * 2;
-	free_size = size * 2;
+	// Sunt 2 bucketuri, deci avem (size / 2 + 1) spatii per bucket
+	total_size = (size / 2 + 1) * 2;
+	free_size = total_size;
 
 	// Asa am vazut in lab
 	bucket_1 = 0;
 	bucket_2 = 0;
 
 	// Aloc memorie pentru fiecare bucket si il setez la 0
-	rc = cudaMalloc (&bucket_1, size * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_1, (size / 2 + 1) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_1!");
 
-	cudaMemset (&bucket_1, 0, size * sizeof (key_value_pair));
+	cudaMemset (&bucket_1, 0, (size / 2 + 1) * sizeof (key_value_pair));
 
-	rc = cudaMalloc (&bucket_2, size * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_2, (size / 2 + 1) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_2!");
 
-    cudaMemset (&bucket_2, 0, size * sizeof (key_value_pair));
+    cudaMemset (&bucket_2, 0, (size / 2 + 1) * sizeof (key_value_pair));
 }
 
 /* DESTROY HASH
@@ -232,7 +232,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	int blocks_number;
 
 	// Verific daca marimea ceruta este valida
-	if (numBucketsReshape <= total_size / 2) {
+	if (numBucketsReshape <= total_size) {
 		return;
 	}
 
@@ -244,27 +244,27 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	bucket_2_new = 0;
 
 	// Aloc memorie pentru cele 2 noi bucket-uri
-	rc = cudaMalloc (&bucket_1_new, numBucketsReshape * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_1_new, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_1_new!");
-    cudaMemset (&bucket_1_new, 0, numBucketsReshape * sizeof (key_value_pair));
+    cudaMemset (&bucket_1_new, 0, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
 
-    rc = cudaMalloc (&bucket_2_new, numBucketsReshape * sizeof (key_value_pair));
+    rc = cudaMalloc (&bucket_2_new, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
     DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_2_new!");
-    cudaMemset (&bucket_2_new, 0, numBucketsReshape * sizeof (key_value_pair));
+    cudaMemset (&bucket_2_new, 0, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
 
 	// Calculez cate blocuri vor rula
-    blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
+    blocks_number = (total_size / 2 + 1) / THREADS_NUMBER + 1;
 
     // Trec datele din vechile bucket-uri in cele noi
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, total_size / 2, numBucketsReshape);
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2 + 1), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, total_size / 2, numBucketsReshape);
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2 + 1), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
     // Updatez metricile
-    free_size += (numBucketsReshape * 2 - total_size);
-    total_size = numBucketsReshape * 2;
+    free_size += (numBucketsReshape - total_size);
+    total_size = (numBucketsReshape / 2 + 1) * 2;
 
     // Inlocuiesc vechile bucket-uri cu cele noi
     cudaFree (bucket_1);
@@ -300,13 +300,13 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 
     // Daca cu noile chei se umple hashmapul mai mult de 75%, fac reshape pentru a avea un load factor de 50% dupa adaugarea noilor chei
     if ((total_size - free_size + numKeys) > ((float)((float)(75.00f / 100.00f) * (float)total_size))) {
-        reshape ((total_size - free_size + numKeys) * (200 / 100) / 2 + 2);
+        reshape ((total_size - free_size + numKeys) * 2);
     }
 
 	// Calculez cate blocuri vor rula
     blocks_number = numKeys / THREADS_NUMBER + 1;
 
-    insert_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, total_size / 2);
+    insert_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2 + 1));
 
     // Astept ca toate blocurile sa se termine
     cudaDeviceSynchronize();
@@ -348,7 +348,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
     // Calculez cate blocuri vor rula
     blocks_number = numKeys / THREADS_NUMBER + 1;
 
-	get_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, total_size / 2);
+	get_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2 + 1));
 
     // Astept ca toate blocurile sa se termine
 	cudaDeviceSynchronize();
