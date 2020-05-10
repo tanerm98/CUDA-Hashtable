@@ -30,36 +30,43 @@ void fillRandom(vector<int> &vecKeys, vector<int> &vecValues, int numEntries) {
 	vecKeys.reserve(numEntries);
 	vecValues.reserve(numEntries);
 
-	for(int i = 1; i <= numEntries; i++) {
-		vecKeys.push_back(i);
-		vecValues.push_back(i);
+	int interval = (numeric_limits<int>::max() / numEntries) - 1;
+	default_random_engine generator;
+	uniform_int_distribution<int> distribution(1, interval);
+
+	for(int i = 0; i < numEntries; i++) {
+		vecKeys.push_back(interval * i + distribution(generator));
+		vecValues.push_back(interval * i + distribution(generator));
 	}
+
+	random_shuffle(vecKeys.begin(), vecKeys.end());
+	random_shuffle(vecValues.begin(), vecValues.end());
 }
 
 int main(int argc, char **argv)
 {
 	clock_t begin;
 	double elapsedTime;
-	
+
 	int numKeys = 0;
 	int numChunks = 0;
 	vector<int> vecKeys;
 	vector<int> vecValues;
 	int *valuesGot = NULL;
-	
-	DIE(argc != 3, 
+
+	DIE(argc != 3,
 		"ERR, args num, call ./bin test_numKeys test_numChunks");
-	
+
 	numKeys = stoll(argv[1]);
 	DIE((numKeys < 1) || (numKeys >= numeric_limits<int>::max()),
 		"ERR, numKeys should be greater or equal to 1 and less than maxint");
-	
+
 	numChunks = stoll(argv[2]);
-	DIE((numChunks < 1) || (numChunks >= numKeys), 
+	DIE((numChunks < 1) || (numChunks >= numKeys),
 		"ERR, numChunks should be greater or equal to 1");
-	
+
 	fillRandom(vecKeys, vecValues, numKeys);
-	
+
 	HASH_INIT;
 
 	int chunkSize = numKeys / numChunks;
@@ -75,7 +82,7 @@ int main(int argc, char **argv)
 		// insert stage
 		HASH_BATCH_INSERT(keysStart, valuesStart, chunkSize);
 		elapsedTime = double(clock() - begin) / CLOCKS_PER_SEC;
-		
+
 		cout << "HASH_BATCH_INSERT, " << chunkSize
 		<< ", " << chunkSize / elapsedTime / 1000000
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
@@ -87,24 +94,20 @@ int main(int argc, char **argv)
 		vecValues[chunkStart] += 1111111 + chunkStart;
 	}
 	HASH_BATCH_INSERT(&vecKeys[0], &vecValues[0], chunkSizeUpdate);
-	cout << "HASH_BATCH_INSERT, " << chunkSizeUpdate
-    << ", " << chunkSize / elapsedTime / 1000000
-    << ", " << 100.f * HASH_LOAD_FACTOR << endl;
 
 	// perform GET and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
-		
+
 		int* keysStart = &vecKeys[chunkStart];
 
 		begin = clock();
 		// get stage
 		valuesGot = HASH_BATCH_GET(keysStart, chunkSize);
 		elapsedTime = double(clock() - begin) / CLOCKS_PER_SEC;
-		
+
 		cout << "HASH_BATCH_GET, " << chunkSize
 		<< ", " << chunkSize / elapsedTime / 1000000
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
-
 
 		DIE(valuesGot == NULL, "ERR, ptr valuesCheck cannot be NULL");
 
@@ -118,14 +121,13 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		
+
 		if(mistmatches > 0) {
 			cout << "ERR, mistmatches: " << mistmatches << " / " << numKeys << endl;
 			exit(1);
 		}
 	}
 
-	cout << "haha!\n";
 	return 0;
 }
 
