@@ -94,6 +94,9 @@ int main(int argc, char **argv)
 		vecValues[chunkStart] += 1111111 + chunkStart;
 	}
 	HASH_BATCH_INSERT(&vecKeys[0], &vecValues[0], chunkSizeUpdate);
+	cout << "HASH_BATCH_INSERT, " << chunkSizeUpdate
+    << ", " << chunkSize / elapsedTime / 1000000
+    << ", " << 100.f * HASH_LOAD_FACTOR << endl;
 
 	/*
 	// perform GET and test performance
