@@ -69,10 +69,10 @@ int main(int argc, char **argv)
 	
 	HASH_INIT;
 
-	/*
 	int chunkSize = numKeys / numChunks;
 	HASH_RESERVE(chunkSize);
 
+	/*
 	// perform INSERT and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
 

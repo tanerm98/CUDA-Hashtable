@@ -277,7 +277,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 /* INSERT BATCH
  */
 bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
-	return false;
 	int rc;
 	int blocks_number;
 
