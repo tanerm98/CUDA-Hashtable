@@ -261,10 +261,10 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
 
     // Trec datele din vechile bucket-uri in cele noi
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
+    //move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
+    //move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
     // Updatez metricile
@@ -291,7 +291,9 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
     for(int i = 0; i < total_size / 2; i++) {
         if (bucket[i].key == bucket[i].value) {
             egal++;
-            cout << bucket[i].key << " == " << bucket[i].value << endl;
+            if (egal <= 50) {
+                cout << bucket[i].key << " == " << bucket[i].value << endl;
+            }
         } else {
             not_egal++;
             if (not_egal <= 50) {
