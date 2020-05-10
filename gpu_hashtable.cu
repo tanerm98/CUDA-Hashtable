@@ -170,7 +170,7 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
  */
 GpuHashTable::GpuHashTable(int size) {
 
-	// Sunt 2 bucketuri, deci in total avem 2 * size spatii pentru perechi cheie - valoare
+	// Sunt 2 bucketuri, deci in total avem (2 * size) spatii pentru perechi cheie - valoare
 	total_size = size * 2;
 	free_size = size * 2;
 
