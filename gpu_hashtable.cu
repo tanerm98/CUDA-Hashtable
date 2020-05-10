@@ -207,15 +207,15 @@ GpuHashTable::GpuHashTable(int size) {
 	bucket_2 = 0;
 
 	// Aloc memorie pentru fiecare bucket si il setez la 0
-	rc = cudaMalloc (&bucket_1, (size / 2 + 1) * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_1, (total_size / 2) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_1!");
 
-	cudaMemset (&bucket_1, 0, (size / 2 + 1) * sizeof (key_value_pair));
+	cudaMemset (&bucket_1, 0, (total_size / 2) * sizeof (key_value_pair));
 
-	rc = cudaMalloc (&bucket_2, (size / 2 + 1) * sizeof (key_value_pair));
+	rc = cudaMalloc (&bucket_2, (total_size / 2) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_2!");
 
-    cudaMemset (&bucket_2, 0, (size / 2 + 1) * sizeof (key_value_pair));
+    cudaMemset (&bucket_2, 0, (total_size / 2) * sizeof (key_value_pair));
 }
 
 /* DESTROY HASH
@@ -253,17 +253,17 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     cudaMemset (&bucket_2_new, 0, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
 
 	// Calculez cate blocuri vor rula
-    blocks_number = (total_size / 2 + 1) / THREADS_NUMBER + 1;
+    blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
 
     // Trec datele din vechile bucket-uri in cele noi
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2 + 1), (numBucketsReshape / 2 + 1));
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
-    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2 + 1), (numBucketsReshape / 2 + 1));
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
     // Updatez metricile
-    free_size += (numBucketsReshape - total_size);
+    free_size += (((numBucketsReshape / 2 + 1) * 2) - total_size);
     total_size = (numBucketsReshape / 2 + 1) * 2;
 
     // Inlocuiesc vechile bucket-uri cu cele noi
@@ -306,7 +306,7 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	// Calculez cate blocuri vor rula
     blocks_number = numKeys / THREADS_NUMBER + 1;
 
-    insert_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2 + 1));
+    insert_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2));
 
     // Astept ca toate blocurile sa se termine
     cudaDeviceSynchronize();
@@ -348,7 +348,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
     // Calculez cate blocuri vor rula
     blocks_number = numKeys / THREADS_NUMBER + 1;
 
-	get_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2 + 1));
+	get_keys <<<blocks_number, THREADS_NUMBER>>> (new_keys, new_values, numKeys, bucket_1, bucket_2, (total_size / 2));
 
     // Astept ca toate blocurile sa se termine
 	cudaDeviceSynchronize();
