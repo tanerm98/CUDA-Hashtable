@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	}
 
 	// perform INSERT for update validation
-	int chunkSizeUpdate = min(64, numKeys);
+	/* int chunkSizeUpdate = min(64, numKeys);
 	for(int chunkStart = 0; chunkStart < chunkSizeUpdate; chunkStart++) {
 		vecValues[chunkStart] += 1111111 + chunkStart;
 	}
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	cout << "HASH_BATCH_INSERT, " << chunkSizeUpdate
     << ", " << chunkSize / elapsedTime / 1000000
     << ", " << 100.f * HASH_LOAD_FACTOR << endl;
-
+	*/
 
 	// perform GET and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
