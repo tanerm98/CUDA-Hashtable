@@ -68,7 +68,8 @@ int main(int argc, char **argv)
 	fillRandom(vecKeys, vecValues, numKeys);
 	
 	HASH_INIT;
-	
+
+	/*
 	int chunkSize = numKeys / numChunks;
 	HASH_RESERVE(chunkSize);
 
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
-
+	*/
 	return 0;
 }
 
