@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     << ", " << chunkSize / elapsedTime / 1000000
     << ", " << 100.f * HASH_LOAD_FACTOR << endl;
 
-	/*
+
 	// perform GET and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
 		
@@ -112,7 +112,8 @@ int main(int argc, char **argv)
 		cout << "HASH_BATCH_GET, " << chunkSize
 		<< ", " << chunkSize / elapsedTime / 1000000
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
-	
+
+		/*
 		DIE(valuesGot == NULL, "ERR, ptr valuesCheck cannot be NULL");
 		
 		int mistmatches = 0;
@@ -130,8 +131,9 @@ int main(int argc, char **argv)
 			cout << "ERR, mistmatches: " << mistmatches << " / " << numKeys << endl;
 			exit(1);
 		}
+		*/
 	}
-	*/
+
 	cout << "haha!\n";
 	return 0;
 }
