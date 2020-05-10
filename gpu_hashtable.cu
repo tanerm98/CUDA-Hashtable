@@ -369,7 +369,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
 
     return results;
     */
-    int res[numKeys];
+    int *res = (int*) malloc (numKeys * sizeof (int));
     for (int i = 0; i < numKeys; i++) {
         res[i] = 19;
     }
