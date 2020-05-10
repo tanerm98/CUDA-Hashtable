@@ -231,7 +231,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	int rc;
 	int blocks_number;
 
-	cout << "RESHAPE de la total_size=" << total_size << "& free_size=" << free_size << ", la numBucketsReshape=" << numBucketsReshape << endl;
+	cout << "RESHAPE de la total_size=" << total_size << " & free_size=" << free_size << ", la numBucketsReshape=" << numBucketsReshape << endl;
 
 	// Verific daca marimea ceruta este valida
 	if (numBucketsReshape <= total_size) {
@@ -327,6 +327,9 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
             egal++;
         } else {
             not_egal++;
+            if (not_egal <= 50) {
+                cout << bucket[i].key << " && " << bucket[i].value << endl;
+            }
         }
     }
     cout << egal << "->" << not_egal << endl;
