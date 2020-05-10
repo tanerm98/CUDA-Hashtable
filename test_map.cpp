@@ -88,14 +88,14 @@ int main(int argc, char **argv)
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
 	}
 
-	/*
 	// perform INSERT for update validation
 	int chunkSizeUpdate = min(64, numKeys);
 	for(int chunkStart = 0; chunkStart < chunkSizeUpdate; chunkStart++) {
 		vecValues[chunkStart] += 1111111 + chunkStart;
 	}
 	HASH_BATCH_INSERT(&vecKeys[0], &vecValues[0], chunkSizeUpdate);
-	
+
+	/*
 	// perform GET and test performance
 	for(int chunkStart = 0; chunkStart < numKeys; chunkStart += chunkSize) {
 		
