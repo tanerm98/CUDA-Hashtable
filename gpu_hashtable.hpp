@@ -4,7 +4,7 @@
 using namespace std;
 
 #define	KEY_INVALID		0
-#define THREADS_NUMBER  100
+#define THREADS_NUMBER  1024
 
 #define DIE(assertion, call_description) \
 	do {	\
