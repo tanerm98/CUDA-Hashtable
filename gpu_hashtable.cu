@@ -231,6 +231,8 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	int rc;
 	int blocks_number;
 
+	cout << "ia uite!\n";
+
 	// Verific daca marimea ceruta este valida
 	if (numBucketsReshape <= total_size) {
 		return;
@@ -372,7 +374,6 @@ float GpuHashTable::loadFactor() {
 		return 0.19f;
 	}
 
-	return total_size;
 	return (float)((float)((float)total_size - (float)free_size) / (float)total_size);
 }
 
