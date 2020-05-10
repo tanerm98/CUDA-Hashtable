@@ -235,6 +235,23 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	int blocks_number;
 
 	cout << "RESHAPE de la total_size=" << total_size << " & free_size=" << free_size << ", la numBucketsReshape=" << numBucketsReshape << endl;
+	key_value_pair *bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
+    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
+    int egal = 0, not_egal = 0;
+    for(int i = 0; i < total_size / 2; i++) {
+        if (bucket[i].key == bucket[i].value) {
+            egal++;
+            if (egal <= 50) {
+                cout << bucket[i].key << " == " << bucket[i].value << endl;
+            }
+        } else {
+            not_egal++;
+            if (not_egal <= 50) {
+                cout << bucket[i].key << " && " << bucket[i].value << endl;
+            }
+        }
+    }
+    cout << egal << "->" << not_egal << endl;
 
 	// Verific daca marimea ceruta este valida
 	if (numBucketsReshape <= total_size) {
@@ -261,10 +278,10 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
 
     // Trec datele din vechile bucket-uri in cele noi
-    //move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_1, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
-    //move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
+    move_bucket <<<blocks_number, THREADS_NUMBER>>> (bucket_2, bucket_1_new, bucket_2_new, (total_size / 2), (numBucketsReshape / 2 + 1));
     cudaDeviceSynchronize();
 
     // Updatez metricile
@@ -284,24 +301,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	int rc;
 	int blocks_number;
-
-	key_value_pair *bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
-    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
-    int egal = 0, not_egal = 0;
-    for(int i = 0; i < total_size / 2; i++) {
-        if (bucket[i].key == bucket[i].value) {
-            egal++;
-            if (egal <= 50) {
-                cout << bucket[i].key << " == " << bucket[i].value << endl;
-            }
-        } else {
-            not_egal++;
-            if (not_egal <= 50) {
-                cout << bucket[i].key << " && " << bucket[i].value << endl;
-            }
-        }
-    }
-    cout << egal << "->" << not_egal << endl;
 
 	// Mut perechile cheie - valoare in memoria device-ului
 	int *new_keys;
