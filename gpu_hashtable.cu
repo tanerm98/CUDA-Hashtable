@@ -282,6 +282,21 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	int rc;
 	int blocks_number;
 
+	key_value_pair *bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
+    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
+    int egal = 0, not_egal = 0;
+    for(int i = 0; i < total_size / 2; i++) {
+        if (bucket[i].key == bucket[i].value) {
+            egal++;
+        } else {
+            not_egal++;
+            if (not_egal <= 50) {
+                cout << bucket[i].key << " && " << bucket[i].value << endl;
+            }
+        }
+    }
+    cout << egal << "->" << not_egal << endl;
+
 	// Mut perechile cheie - valoare in memoria device-ului
 	int *new_keys;
 	int *new_values;
@@ -318,21 +333,6 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
 	// Sterg din memoria device-ului perechile cheie - valoare
     cudaFree (new_keys);
     cudaFree (new_values);
-
-    key_value_pair *bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
-    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
-    int egal = 0, not_egal = 0;
-    for(int i = 0; i < total_size / 2; i++) {
-        if (bucket[i].key == bucket[i].value) {
-            egal++;
-        } else {
-            not_egal++;
-            if (not_egal <= 50) {
-                cout << bucket[i].key << " && " << bucket[i].value << endl;
-            }
-        }
-    }
-    cout << egal << "->" << not_egal << endl;
 
 	return true;
 }
