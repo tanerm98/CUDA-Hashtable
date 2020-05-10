@@ -113,9 +113,9 @@ int main(int argc, char **argv)
 		<< ", " << chunkSize / elapsedTime / 1000000
 		<< ", " << 100.f * HASH_LOAD_FACTOR << endl;
 
-		/*
+
 		DIE(valuesGot == NULL, "ERR, ptr valuesCheck cannot be NULL");
-		
+		/*
 		int mistmatches = 0;
 		for(int i = 0; i < chunkSize; i++) {
 			if(vecValues[chunkStart + i] != valuesGot[i]) {
