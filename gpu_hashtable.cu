@@ -249,26 +249,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 	int rc;
 	int blocks_number;
 
-	cout << "RESHAPE de la total_size=" << total_size << " & free_size=" << free_size << ", la numBucketsReshape=" << numBucketsReshape << endl;
-	key_value_pair *bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
-    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
-    int egal = 0, not_egal = 0;
-    for(int i = 0; i < total_size / 2; i++) {
-        if (bucket[i].key == bucket[i].value) {
-            egal++;
-            if (egal <= 50) {
-                cout << bucket[i].key << " == " << bucket[i].value << endl;
-            }
-        } else {
-            not_egal++;
-            if (not_egal <= 50) {
-                cout << bucket[i].key << " && " << bucket[i].value << endl;
-            }
-        }
-    }
-    cout << egal << "->" << not_egal << endl;
-    free(bucket);
-
 	// Verific daca marimea ceruta este valida
 	if (numBucketsReshape <= total_size) {
 		return;
@@ -314,26 +294,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     bucket_1 = bucket_1_new;
     bucket_2 = bucket_2_new;
-
-    cout << "after RESHAPE" << endl;
-    bucket = (key_value_pair*) calloc (total_size / 2, sizeof(key_value_pair));
-    cudaMemcpy (bucket, bucket_1, total_size / 2 * sizeof(key_value_pair), cudaMemcpyDeviceToHost);
-    egal = 0, not_egal = 0;
-    for(int i = 0; i < total_size / 2; i++) {
-        if (bucket[i].key == bucket[i].value) {
-            egal++;
-            if (egal <= 50) {
-                cout << bucket[i].key << " == " << bucket[i].value << endl;
-            }
-        } else {
-            not_egal++;
-            if (not_egal <= 50) {
-                cout << bucket[i].key << " && " << bucket[i].value << endl;
-            }
-        }
-    }
-    cout << egal << "->" << not_egal << endl;
-    free(bucket);
 }
 
 /* INSERT BATCH
