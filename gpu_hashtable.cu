@@ -372,6 +372,7 @@ float GpuHashTable::loadFactor() {
 		return 0.19f;
 	}
 
+	return total_size;
 	return (float)((float)((float)total_size - (float)free_size) / (float)total_size);
 }
 
