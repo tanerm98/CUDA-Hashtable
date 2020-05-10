@@ -29,18 +29,11 @@ using namespace std;
 void fillRandom(vector<int> &vecKeys, vector<int> &vecValues, int numEntries) {
 	vecKeys.reserve(numEntries);
 	vecValues.reserve(numEntries);
-	
-	int interval = (numeric_limits<int>::max() / numEntries) - 1;
-	default_random_engine generator;
-	uniform_int_distribution<int> distribution(1, interval);
 
 	for(int i = 0; i < numEntries; i++) {
-		vecKeys.push_back(interval * i + distribution(generator));
-		vecValues.push_back(interval * i + distribution(generator));
+		vecKeys.push_back(i);
+		vecValues.push_back(i);
 	}
-	
-	random_shuffle(vecKeys.begin(), vecKeys.end());
-	random_shuffle(vecValues.begin(), vecValues.end());
 }
 
 int main(int argc, char **argv)
