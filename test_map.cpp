@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
 
 		DIE(valuesGot == NULL, "ERR, ptr valuesCheck cannot be NULL");
-		/*
+
 		int mistmatches = 0;
 		for(int i = 0; i < chunkSize; i++) {
 			if(vecValues[chunkStart + i] != valuesGot[i]) {
@@ -131,7 +131,6 @@ int main(int argc, char **argv)
 			cout << "ERR, mistmatches: " << mistmatches << " / " << numKeys << endl;
 			exit(1);
 		}
-		*/
 	}
 
 	cout << "haha!\n";
