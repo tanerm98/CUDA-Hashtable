@@ -228,6 +228,7 @@ GpuHashTable::~GpuHashTable() {
 /* RESHAPE HASH
  */
 void GpuHashTable::reshape(int numBucketsReshape) {
+	/*
 	int rc;
 	int blocks_number;
 
@@ -272,11 +273,14 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     bucket_1 = bucket_1_new;
     bucket_2 = bucket_2_new;
+    */
 }
 
 /* INSERT BATCH
  */
 bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
+	return false;
+	/*
 	int rc;
 	int blocks_number;
 
@@ -318,11 +322,13 @@ bool GpuHashTable::insertBatch(int *keys, int* values, int numKeys) {
     cudaFree (new_values);
 
 	return true;
+	*/
 }
 
 /* GET BATCH
  */
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
+	/*
 	int rc;
 	int blocks_number;
 
@@ -362,17 +368,26 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
     cudaFree (new_values);
 
     return results;
+    */
+    int res[numKeys];
+    for (int i = 0; i < numKeys; i++) {
+        res[i] = 19;
+    }
+    return res;
 }
 
 /* GET LOAD FACTOR
  * num elements / hash total slots elements
  */
 float GpuHashTable::loadFactor() {
+	return 0;
+	/*
 	if (total_size == 0) {
 		return 0.0f;
 	}
 
 	return (float)((total_size - free_size) / total_size);
+	*/
 }
 
 /*********************************************************/
