@@ -76,36 +76,36 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
 	hash = hash1 (new_keys[idx], bucket_size);
 	old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-		atomicExch (&bucket_1[hash].value, new_values[idx]);
+		bucket_1[hash].value = new_values[idx];
 		return;
 	}
 	old = atomicCAS (&bucket_2[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_2[hash].value, new_values[idx]);
+		bucket_2[hash].value = new_values[idx];
         return;
     }
 
     hash = hash2 (new_keys[idx], bucket_size);
     old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_1[hash].value, new_values[idx]);
+		bucket_1[hash].value = new_values[idx];
         return;
     }
     old = atomicCAS (&bucket_2[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_2[hash].value, new_values[idx]);
+		bucket_2[hash].value = new_values[idx];
         return;
     }
 
     hash = hash3 (new_keys[idx], bucket_size);
     old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_1[hash].value, new_values[idx]);
+		bucket_1[hash].value = new_values[idx];
         return;
     }
     old = atomicCAS (&bucket_2[hash].key, KEY_INVALID, new_keys[idx]);
 	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_2[hash].value, new_values[idx]);
+		bucket_2[hash].value = new_values[idx];
         return;
     }
 
@@ -113,13 +113,13 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
     for (i = 0; i < bucket_size; i++) {
         old = atomicCAS (&bucket_1[i].key, KEY_INVALID, new_keys[idx]);
 		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-            atomicExch (&bucket_1[i].value, new_values[idx]);
+            bucket_1[i].value = new_values[idx];
             return;
         }
 
         old = atomicCAS (&bucket_2[i].key, KEY_INVALID, new_keys[idx]);
 		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-            atomicExch (&bucket_2[i].value, new_values[idx]);
+            bucket_2[i].value = new_values[idx];
             return;
         }
     }
@@ -142,12 +142,13 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 
 	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
 	if (old == KEY_INVALID) {
-        atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
+        new_bucket1[hash].value = old_bucket[idx].value;
         return;
     }
     old = atomicCAS (&new_bucket2[hash].key, KEY_INVALID, old_bucket[idx].key);
     if (old == KEY_INVALID) {
         atomicExch (&new_bucket2[hash].value, old_bucket[idx].value);
+        new_bucket2[hash].value = old_bucket[idx].value;
         return;
     }
 
@@ -155,12 +156,12 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 
 	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
     if (old == KEY_INVALID) {
-        atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
+        new_bucket1[hash].value = old_bucket[idx].value;
         return;
     }
     old = atomicCAS (&new_bucket2[hash].key, KEY_INVALID, old_bucket[idx].key);
     if (old == KEY_INVALID) {
-        atomicExch (&new_bucket2[hash].value, old_bucket[idx].value);
+        new_bucket2[hash].value = old_bucket[idx].value;
         return;
     }
 
@@ -168,12 +169,12 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 
 	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
     if (old == KEY_INVALID) {
-        atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
+        new_bucket1[hash].value = old_bucket[idx].value;
         return;
     }
     old = atomicCAS (&new_bucket2[hash].key, KEY_INVALID, old_bucket[idx].key);
     if (old == KEY_INVALID) {
-        atomicExch (&new_bucket2[hash].value, old_bucket[idx].value);
+        new_bucket2[hash].value = old_bucket[idx].value;
         return;
     }
 
@@ -181,13 +182,13 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 	for (i = 0; i < new_bucket_size; i++) {
 		old = atomicCAS (&new_bucket1[i].key, KEY_INVALID, old_bucket[idx].key);
 		if (old == KEY_INVALID) {
-            atomicExch (&new_bucket1[i].value, old_bucket[idx].value);
+            new_bucket1[i].value = old_bucket[idx].value;
             return;
         }
 
         old = atomicCAS (&new_bucket2[i].key, KEY_INVALID, old_bucket[idx].key);
         if (old == KEY_INVALID) {
-            atomicExch (&new_bucket2[i].value, old_bucket[idx].value);
+            new_bucket2[i].value = old_bucket[idx].value;
             return;
         }
 	}
