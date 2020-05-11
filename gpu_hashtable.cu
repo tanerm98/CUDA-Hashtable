@@ -40,7 +40,17 @@ __global__ void get_keys (int *new_keys, int *new_values, int numKeys, key_value
     }
 
     // Daca nicio functie de hash nu a functionat
-    for (i = 0; i < bucket_size; i++) {
+    for (i = hash + 1; i < bucket_size; i++) {
+        if (new_keys[idx] == bucket_1[i].key) {
+            new_values[idx] = bucket_1[i].value;
+            return;
+        }
+        if (new_keys[idx] == bucket_2[i].key) {
+            new_values[idx] = bucket_2[i].value;
+            return;
+        }
+    }
+    for (i = 0; i < hash; i++) {
         if (new_keys[idx] == bucket_1[i].key) {
             new_values[idx] = bucket_1[i].value;
             return;
@@ -75,7 +85,7 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
     }
 
     // Daca nicio functie de hash nu a functionat, inserez in orice loc liber gasesc
-    for (i = 0; i < bucket_size; i++) {
+    for (i = hash + 1; i < bucket_size; i++) {
         old = atomicCAS (&bucket_1[i].key, KEY_INVALID, new_keys[idx]);
 		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
             atomicExch (&bucket_1[i].value, new_values[idx]);
@@ -84,6 +94,20 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
 
         old = atomicCAS (&bucket_2[i].key, KEY_INVALID, new_keys[idx]);
 		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
+            atomicExch (&bucket_2[i].value, new_values[idx]);
+            return;
+        }
+    }
+
+    for (i = 0; i < hash; i++) {
+        old = atomicCAS (&bucket_1[i].key, KEY_INVALID, new_keys[idx]);
+        if ((old == KEY_INVALID) || (old == new_keys[idx])) {
+            atomicExch (&bucket_1[i].value, new_values[idx]);
+            return;
+        }
+
+        old = atomicCAS (&bucket_2[i].key, KEY_INVALID, new_keys[idx]);
+        if ((old == KEY_INVALID) || (old == new_keys[idx])) {
             atomicExch (&bucket_2[i].value, new_values[idx]);
             return;
         }
@@ -119,7 +143,7 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
     }
 
 	// Daca nicio functie de hash nu a functionat, inserez in orice loc liber gasesc
-	for (i = 0; i < new_bucket_size; i++) {
+	for (i = hash + 1; i < new_bucket_size; i++) {
 		old = atomicCAS (&new_bucket1[i].key, KEY_INVALID, old_bucket[idx].key);
 		if (old == KEY_INVALID) {
             atomicExch (&new_bucket1[i].value, old_bucket[idx].value);
@@ -132,6 +156,19 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
             return;
         }
 	}
+	for (i = 0; i < hash; i++) {
+        old = atomicCAS (&new_bucket1[i].key, KEY_INVALID, old_bucket[idx].key);
+        if (old == KEY_INVALID) {
+            atomicExch (&new_bucket1[i].value, old_bucket[idx].value);
+            return;
+        }
+
+        old = atomicCAS (&new_bucket2[i].key, KEY_INVALID, old_bucket[idx].key);
+        if (old == KEY_INVALID) {
+            atomicExch (&new_bucket2[i].value, old_bucket[idx].value);
+            return;
+        }
+    }
 }
 
 /* INIT HASH
