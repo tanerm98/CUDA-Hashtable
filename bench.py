@@ -61,7 +61,9 @@ for program in programs:
             output = subprocess.check_output(['./' + program, str(testEntry["numEntries"]), str(testEntry["numChunks"])])
             print("the output is: ", output, "\n---------------------------------------------------------------\n")
             lines = str(output).split("\n")
-            
+
+            print("dupa str de output")
+
             testPoints = 0
             testName = testEntry["testName"]
             
@@ -70,33 +72,42 @@ for program in programs:
             for line in lines:
 
                 words = str(line).split(",")
+
+                print("dupa str de line")
+
                 tagName = words[0]
 
+                print("words de 0")
+
                 if tagName == "ERR":
+                    print("eroare")
 
                     testPoints = 0
                     print(line, " INVALIDATED")
                     break
 
                 if tagName == "HASH_BATCH_INSERT" or tagName == "HASH_BATCH_GET":
+                    print("tagname")
                     
                     hashThroughput = float(words[2])
                     loadFactor = float(words[3])
                     testReq = testEntry["tags"][tagName]
 
                     if (hashThroughput >= testReq["minThroughput"]) and (loadFactor >= testReq["minLoadFactor"]):
+                        print("indeplineste")
 
                         testPoints = testPoints + testReq["points"]
                         print( "OK\t +%d pts\t %s" % (testReq["points"], line) )
                         
                     else:
-
+                        print("nu indeplineste")
                         print( "FAILED\t   0 pts\t %s\t REQUIREMENTS %s" % (line, testReq) )
                         
             hwPoints = hwPoints + testPoints
             print( "TOTAL\t +%d pts\n" % (testPoints) )
  
         except Exception:
+            print("exceptie")
 
             traceback.print_exc()
             print( "Error with %s" % str(['./' + program, str(testEntry["numEntries"]), str(testEntry["numChunks"])]))

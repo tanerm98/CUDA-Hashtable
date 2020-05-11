@@ -1,4 +1,11 @@
-#!/bin/sh
+£!/bin/sh
 
-qsub -q hp-sl.q -b y -wd ~/CUDA-Hashtable ./module_load.sh
-qstat
+for i in 1 .. 50
+do
+        qsub -q hp-sl.q -b y -wd ~/CUDA-Hashtable ./module_load.sh
+        qstat
+        sleep 1m
+        qstat
+        ls -l
+        echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+done
