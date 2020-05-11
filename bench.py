@@ -78,7 +78,7 @@ for program in programs:
                 tagName = words[0]
 
                 print("words de 0")
-                print(tagname)
+                print(tagName)
 
                 if tagName == "ERR":
                     print("eroare")
