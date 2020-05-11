@@ -212,7 +212,6 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
  */
 GpuHashTable::GpuHashTable(int size) {
 	int rc;
-	int blocks_number;
 
 	// Sunt 2 bucketuri, deci avem (size / 2 + 1) spatii per bucket
 	total_size = (size / 2 + 1) * 2;
@@ -228,14 +227,6 @@ GpuHashTable::GpuHashTable(int size) {
 
 	rc = cudaMalloc (&bucket_2, (total_size / 2) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_2!");
-
-	/*
-    blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_1, (total_size / 2));
-    cudaDeviceSynchronize();
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_2, (total_size / 2));
-    cudaDeviceSynchronize();
-    */
 }
 
 /* DESTROY HASH
@@ -269,14 +260,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     rc = cudaMalloc (&bucket_2_new, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
     DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_2_new!");
-
-	/*
-    blocks_number = (numBucketsReshape / 2 + 1) / THREADS_NUMBER + 1;
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_1_new, (numBucketsReshape / 2 + 1));
-    cudaDeviceSynchronize();
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_2_new, (numBucketsReshape / 2 + 1));
-    cudaDeviceSynchronize();
-    */
 
 	// Calculez cate blocuri vor rula
     blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
