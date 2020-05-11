@@ -19,12 +19,6 @@ using namespace std;
 __device__ int hash1(int data, int limit) {
 	return ((long)abs(data) * 5480398654009llu) % 1436653624766633509llu % limit;
 }
-__device__ int hash2(int data, int limit) {
-	return ((long)abs(data) * 13809739252051llu) % 2873307249533267101llu % limit;
-}
-__device__ int hash3(int data, int limit) {
-	return ((long)abs(data) * 34798362354533llu) % 5746614499066534157llu % limit;
-}
 
 // pereche cheie - valoare
 struct key_value_pair {

@@ -21,7 +21,7 @@ __global__ void set_zero (key_value_pair *bucket, int bucket_size) {
 
 __global__ void get_keys (int *new_keys, int *new_values, int numKeys, key_value_pair *bucket_1, key_value_pair *bucket_2, int bucket_size) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int hash;
+    int i, hash;
 
     // Las sa ruleze un numar de threaduri egal cu numarul de perechi
     if (numKeys <= idx) {
@@ -30,7 +30,6 @@ __global__ void get_keys (int *new_keys, int *new_values, int numKeys, key_value
 
     // Incerc sa scot din pozitia data de una dintre cele 3 functii de hash
     hash = hash1 (new_keys[idx], bucket_size);
-
     if (new_keys[idx] == bucket_1[hash].key) {
         new_values[idx] = bucket_1[hash].value;
         return;
@@ -40,32 +39,22 @@ __global__ void get_keys (int *new_keys, int *new_values, int numKeys, key_value
         return;
     }
 
-    hash = hash2 (new_keys[idx], bucket_size);
-
-    if (new_keys[idx] == bucket_1[hash].key) {
-        new_values[idx] = bucket_1[hash].value;
-        return;
-    }
-    if (new_keys[idx] == bucket_2[hash].key) {
-        new_values[idx] = bucket_2[hash].value;
-        return;
-    }
-
-    hash = hash3 (new_keys[idx], bucket_size);
-
-    if (new_keys[idx] == bucket_1[hash].key) {
-        new_values[idx] = bucket_1[hash].value;
-        return;
-    }
-    if (new_keys[idx] == bucket_2[hash].key) {
-        new_values[idx] = bucket_2[hash].value;
-        return;
+    // Daca nicio functie de hash nu a functionat
+    for (i = 0; i < bucket_size; i++) {
+        if (new_keys[idx] == bucket_1[i].key) {
+            new_values[idx] = bucket_1[i].value;
+            return;
+        }
+        if (new_keys[idx] == bucket_2[i].key) {
+            new_values[idx] = bucket_2[i].value;
+            return;
+        }
     }
 }
 
 __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_value_pair *bucket_1, key_value_pair *bucket_2, int bucket_size) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int hash, old;
+	int i, hash, old;
 
 	// Las sa ruleze un numar de threaduri egal cu numarul de perechi
 	if (numKeys <= idx) {
@@ -85,28 +74,19 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
         return;
     }
 
-    hash = hash2 (new_keys[idx], bucket_size);
-    old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
-	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_1[hash].value, new_values[idx]);
-        return;
-    }
-    old = atomicCAS (&bucket_2[hash].key, KEY_INVALID, new_keys[idx]);
-	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_2[hash].value, new_values[idx]);
-        return;
-    }
+    // Daca nicio functie de hash nu a functionat, inserez in orice loc liber gasesc
+    for (i = 0; i < bucket_size; i++) {
+        old = atomicCAS (&bucket_1[i].key, KEY_INVALID, new_keys[idx]);
+		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
+            atomicExch (&bucket_1[i].value, new_values[idx]);
+            return;
+        }
 
-    hash = hash3 (new_keys[idx], bucket_size);
-    old = atomicCAS (&bucket_1[hash].key, KEY_INVALID, new_keys[idx]);
-	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_1[hash].value, new_values[idx]);
-        return;
-    }
-    old = atomicCAS (&bucket_2[hash].key, KEY_INVALID, new_keys[idx]);
-	if ((old == KEY_INVALID) || (old == new_keys[idx])) {
-        atomicExch (&bucket_2[hash].value, new_values[idx]);
-        return;
+        old = atomicCAS (&bucket_2[i].key, KEY_INVALID, new_keys[idx]);
+		if ((old == KEY_INVALID) || (old == new_keys[idx])) {
+            atomicExch (&bucket_2[i].value, new_values[idx]);
+            return;
+        }
     }
 
     bucket_1[idx].value = -19;
@@ -118,7 +98,7 @@ __global__ void insert_keys (int *new_keys, int *new_values, int numKeys, key_va
 */
 __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_bucket1, key_value_pair *new_bucket2, int old_bucket_size, int new_bucket_size) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int old, hash;
+	int i, old, hash;
 
 	// Las sa ruleze un numar de threaduri egal cu marimea bucket-ului, doar pt intrarile cu valori in bucket
 	if ((old_bucket_size <= idx) || (old_bucket[idx].key == KEY_INVALID)) {
@@ -127,7 +107,6 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
 
 	// Incerc sa inserez in pozitia data de una dintre cele 3 functii de hash
 	hash = hash1 (old_bucket[idx].key, new_bucket_size);
-
 	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
 	if (old == KEY_INVALID) {
         atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
@@ -139,38 +118,26 @@ __global__ void move_bucket (key_value_pair *old_bucket, key_value_pair *new_buc
         return;
     }
 
-	hash = hash2 (old_bucket[idx].key, new_bucket_size);
+	// Daca nicio functie de hash nu a functionat, inserez in orice loc liber gasesc
+	for (i = 0; i < new_bucket_size; i++) {
+		old = atomicCAS (&new_bucket1[i].key, KEY_INVALID, old_bucket[idx].key);
+		if (old == KEY_INVALID) {
+            atomicExch (&new_bucket1[i].value, old_bucket[idx].value);
+            return;
+        }
 
-	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
-    if (old == KEY_INVALID) {
-        atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
-        return;
-    }
-    old = atomicCAS (&new_bucket2[hash].key, KEY_INVALID, old_bucket[idx].key);
-    if (old == KEY_INVALID) {
-        atomicExch (&new_bucket2[hash].value, old_bucket[idx].value);
-        return;
-    }
-
-	hash = hash3 (old_bucket[idx].key, new_bucket_size);
-
-	old = atomicCAS (&new_bucket1[hash].key, KEY_INVALID, old_bucket[idx].key);
-    if (old == KEY_INVALID) {
-        atomicExch (&new_bucket1[hash].value, old_bucket[idx].value);
-        return;
-    }
-    old = atomicCAS (&new_bucket2[hash].key, KEY_INVALID, old_bucket[idx].key);
-    if (old == KEY_INVALID) {
-        atomicExch (&new_bucket2[hash].value, old_bucket[idx].value);
-        return;
-    }
+        old = atomicCAS (&new_bucket2[i].key, KEY_INVALID, old_bucket[idx].key);
+        if (old == KEY_INVALID) {
+            atomicExch (&new_bucket2[i].value, old_bucket[idx].value);
+            return;
+        }
+	}
 }
 
 /* INIT HASH
  */
 GpuHashTable::GpuHashTable(int size) {
 	int rc;
-	int blocks_number;
 
 	// Sunt 2 bucketuri, deci avem (size / 2 + 1) spatii per bucket
 	total_size = (size / 2 + 1) * 2;
@@ -186,12 +153,6 @@ GpuHashTable::GpuHashTable(int size) {
 
 	rc = cudaMalloc (&bucket_2, (total_size / 2) * sizeof (key_value_pair));
 	DIE (rc != cudaSuccess, "Eroare in init la alocare bucket_2!");
-
-    blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_1, (total_size / 2));
-    cudaDeviceSynchronize();
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_2, (total_size / 2));
-    cudaDeviceSynchronize();
 }
 
 /* DESTROY HASH
@@ -225,12 +186,6 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     rc = cudaMalloc (&bucket_2_new, (numBucketsReshape / 2 + 1) * sizeof (key_value_pair));
     DIE (rc != cudaSuccess, "Eroare in reshape la alocare bucket_2_new!");
-
-    blocks_number = (numBucketsReshape / 2 + 1) / THREADS_NUMBER + 1;
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_1_new, (numBucketsReshape / 2 + 1));
-    cudaDeviceSynchronize();
-    set_zero <<<blocks_number, THREADS_NUMBER>>> (bucket_2_new, (numBucketsReshape / 2 + 1));
-    cudaDeviceSynchronize();
 
 	// Calculez cate blocuri vor rula
     blocks_number = (total_size / 2) / THREADS_NUMBER + 1;
