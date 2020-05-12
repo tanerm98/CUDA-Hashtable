@@ -1,43 +1,38 @@
-the output is:
-HASH_BATCH_INSERT, 1000000, inf, 81
-HASH_BATCH_GET, 1000000, 50, 81.0052
----------------------------------------------------------------
-
+('the output is: ', 'HASH_BATCH_INSERT, 1000000, 100, 81\nHASH_BATCH_GET, 1000000, inf, 81.0052\n', '\n---------------------------------------------------------------\n')
 -------------- Test T1 --------------
-TOTAL	 +0 pts
+OK	 +10 pts	 HASH_BATCH_INSERT, 1000000, 100, 81
+OK	 +10 pts	 HASH_BATCH_GET, 1000000, inf, 81.0052
 
-the output is:
-HASH_BATCH_INSERT, 2000000, 66.6667, 81
-HASH_BATCH_GET, 2000000, 200, 81.0026'
----------------------------------------------------------------
+TOTAL	 +20 pts
 
+('the output is: ', 'HASH_BATCH_INSERT, 2000000, 200, 81\nHASH_BATCH_GET, 2000000, 100, 81.0026\n', '\n---------------------------------------------------------------\n')
 -------------- Test T2 --------------
-TOTAL	 +0 pts
+OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 200, 81
+OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0026
 
-the output is:
-HASH_BATCH_INSERT, 2000000, 66.6667, 81
-HASH_BATCH_INSERT, 2000000, 100, 81
-HASH_BATCH_GET, 2000000, 200, 81.0013
-HASH_BATCH_GET, 2000000, 100, 81.0013
----------------------------------------------------------------
+TOTAL	 +10 pts
 
+('the output is: ', 'HASH_BATCH_INSERT, 2000000, 100, 81\nHASH_BATCH_INSERT, 2000000, 100, 81\nHASH_BATCH_GET, 2000000, 200, 81.0013\nHASH_BATCH_GET, 2000000, 100, 81.0013\n', '\n---------------------------------------------------------------\n')
 -------------- Test T3 --------------
-TOTAL	 +0 pts
+OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
+OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
+OK	 +5 pts	 HASH_BATCH_GET, 2000000, 200, 81.0013
+OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0013
 
-the output is:
-HASH_BATCH_INSERT, 2500000, 125, 81
-HASH_BATCH_INSERT, 2500000, 83.3333, 81
-HASH_BATCH_INSERT, 2500000, 50, 81
-HASH_BATCH_INSERT, 2500000, 62.5, 81
-HASH_BATCH_GET, 2500000, 125, 81.0005
-HASH_BATCH_GET, 2500000, 250, 81.0005
-HASH_BATCH_GET, 2500000, 125, 81.0005
-HASH_BATCH_GET, 2500000, 125, 81.0005
----------------------------------------------------------------
+TOTAL	 +20 pts
 
+('the output is: ', 'HASH_BATCH_INSERT, 2500000, 83.3333, 81\nHASH_BATCH_INSERT, 2500000, 83.3333, 81\nHASH_BATCH_INSERT, 2500000, 62.5, 81\nHASH_BATCH_INSERT, 2500000, 62.5, 81\nHASH_BATCH_GET, 2500000, 125, 81.0005\nHASH_BATCH_GET, 2500000, 250, 81.0005\nHASH_BATCH_GET, 2500000, 250, 81.0005\nHASH_BATCH_GET, 2500000, 83.3333, 81.0005\n', '\n---------------------------------------------------------------\n')
 -------------- Test T4 --------------
-TOTAL	 +0 pts
+OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
+OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
+OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 62.5, 81
+OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 62.5, 81
+OK	 +5 pts	 HASH_BATCH_GET, 2500000, 125, 81.0005
+OK	 +5 pts	 HASH_BATCH_GET, 2500000, 250, 81.0005
+OK	 +5 pts	 HASH_BATCH_GET, 2500000, 250, 81.0005
+OK	 +5 pts	 HASH_BATCH_GET, 2500000, 83.3333, 81.0005
+
+TOTAL	 +40 pts
 
 
-TOTAL gpu_hashtable  0/90
-
+TOTAL gpu_hashtable  90/90
