@@ -1,18 +1,26 @@
-('the output is: ', 'HASH_BATCH_INSERT, 1000000, 100, 81\nHASH_BATCH_GET, 1000000, inf, 81.0052\n', '\n---------------------------------------------------------------\n')
+the output is:
+HASH_BATCH_INSERT, 1000000, 100, 81
+HASH_BATCH_GET, 1000000, inf, 81.0052
 -------------- Test T1 --------------
 OK	 +10 pts	 HASH_BATCH_INSERT, 1000000, 100, 81
 OK	 +10 pts	 HASH_BATCH_GET, 1000000, inf, 81.0052
 
 TOTAL	 +20 pts
 
-('the output is: ', 'HASH_BATCH_INSERT, 2000000, 200, 81\nHASH_BATCH_GET, 2000000, 100, 81.0026\n', '\n---------------------------------------------------------------\n')
+the output is:
+HASH_BATCH_INSERT, 2000000, 200, 81
+HASH_BATCH_GET, 2000000, 100, 81.0026
 -------------- Test T2 --------------
 OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 200, 81
 OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0026
 
 TOTAL	 +10 pts
 
-('the output is: ', 'HASH_BATCH_INSERT, 2000000, 100, 81\nHASH_BATCH_INSERT, 2000000, 100, 81\nHASH_BATCH_GET, 2000000, 200, 81.0013\nHASH_BATCH_GET, 2000000, 100, 81.0013\n', '\n---------------------------------------------------------------\n')
+the output is
+HASH_BATCH_INSERT, 2000000, 100, 81
+HASH_BATCH_INSERT, 2000000, 100, 81
+HASH_BATCH_GET, 2000000, 200, 81.0013
+HASH_BATCH_GET, 2000000, 100, 81.0013
 -------------- Test T3 --------------
 OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
 OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
@@ -21,7 +29,15 @@ OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0013
 
 TOTAL	 +20 pts
 
-('the output is: ', 'HASH_BATCH_INSERT, 2500000, 83.3333, 81\nHASH_BATCH_INSERT, 2500000, 83.3333, 81\nHASH_BATCH_INSERT, 2500000, 62.5, 81\nHASH_BATCH_INSERT, 2500000, 62.5, 81\nHASH_BATCH_GET, 2500000, 125, 81.0005\nHASH_BATCH_GET, 2500000, 250, 81.0005\nHASH_BATCH_GET, 2500000, 250, 81.0005\nHASH_BATCH_GET, 2500000, 83.3333, 81.0005\n', '\n---------------------------------------------------------------\n')
+the output is:
+HASH_BATCH_INSERT, 2500000, 83.3333, 81
+HASH_BATCH_INSERT, 2500000, 83.3333, 81
+HASH_BATCH_INSERT, 2500000, 62.5, 81
+HASH_BATCH_INSERT, 2500000, 62.5, 81
+HASH_BATCH_GET, 2500000, 125, 81.0005
+HASH_BATCH_GET, 2500000, 250, 81.0005
+HASH_BATCH_GET, 2500000, 250, 81.0005
+HASH_BATCH_GET, 2500000, 83.3333, 81.0005
 -------------- Test T4 --------------
 OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
 OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
@@ -37,9 +53,8 @@ TOTAL	 +40 pts
 
 TOTAL gpu_hashtable  90/90
 
-real	0m0.665s
-user	0m0.023s
-sys	0m0.537s
+========================================================================================================================
+
 ==29451== NVPROF is profiling process 29451, command: ./gpu_hashtable 2000000 2
 ==29451== Profiling application: ./gpu_hashtable 2000000 2
 ==29451== Profiling result:

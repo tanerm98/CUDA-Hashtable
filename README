@@ -1,0 +1,145 @@
+Mustafa Taner - 335 CB - ASC - Tema 3 - Structură de date tip hashtable folosind CUDA
+
+Implementare:
+		Initial, am incercat strategia Bucketized Cuckoo cu 3 functii de hash si 2 bucket-uri, si in caz ca nu gaseam slot
+	liber pentru inserare sau nu gaseam cheia cautata cu aceasta strategie, aplicam Linear Probing de la 0 la dimensiunea
+	hashmap-ului.
+		Cele 3 functii de hash erau cele din schelet, iar cele 2 bucket-uri erau implementate sub forma a 2 vectori de
+	elemente de tip structura formata din 2 `int`-uri: cheie si valoare.
+		La `init` sau `reshape` cu marimea `size`, fiecare bucket primea dimensiunea (size / 2 + 1) si apoi se facea
+	`cudaMemset` cu valoarea 0 pe structurile alocate.
+		La `insert`, `get` sau `reshape`, fiecare thread se ocupa de cate o cheie.
+		La 'insert' si `reshape`, caut cheia cu `atomicCAS`, verificand ca slot-ul in care vreau sa introduc cheia sa fie gol
+	si valoarea o introduc cu `atomicExch`.
+		La `reshape`, strategia era o combinatie intre `get` si `insert`: fiecare thread se ocupa de cate o intrare dintr-un
+	bucket, ii calcula hash-ul si o insera in bucketul nou.
+		Load factorul, la cum am implementat, cel mai bine era sa fie mereu mic, intre 50% si 75%, pentru a nu fi multe
+	coliziuni si a da roade cele 3 functii de hash si cele 2 bucketuri.
+
+Ce nu a mers si am schimbat:
+	1. `cudaMemset` uneori mergea, alteori ramaneau valori nenule pe structurile pe care apelam functia si atunci aveam
+		erori pentru ca hashmap-ul parea ca are locuri ocupate, cand de fapt nu avea. Asa ca dupa fiecare `cudaMalloc`,
+		apelez o functie kernel care pune 0 pe toata memoria alocata (nu stiu daca este mai ineficient decat `cudaMemset`,
+		nu stiu cum este implementat `cudaMemset`. Daca `cudaMemset` ruleaza secvential, atunci cred ca implementarea mea
+		este mai rapida pentru ca lucreaza cate un thread per sizeof(int) octeti).
+	2. Load factorul: am vazut ca testele cereau un load factor care trebuia setat la minim 80. Daca il setam mai mic de atat,
+		atunci la testele under era cerut un load factor de 80 nu avea cum sa treaca, de exemplu: setezi load factor la 60,
+		faci reshape, introduci date, ai load factor 60%. Checkerul cere 80. Nu merge, asa ca trebuia setat la minim 80.
+		Asa ca am setat ca inainte de fiecare insert, sa se faca un reshape pentru ca datele de dupa insert sa fie la 80%.
+	3. Cele 3 functii de hash am observat ca erau prea multe cu noul load factor (cu cel initial gandit de mine inainte sa
+		ma uit pe teste erau eficiente) si erau multe coliziuni. Eliminand linear-probing-ul de la final, am observat ca
+		aveam peste 80% din valori gresite, ceea ce insemna ca cea mai mare parte din treaba o facea linear-probing-ul.
+		Asa ca am renuntat la 2 functii de hash si am pastrat doar una.
+	4. Linear probing-ul: cautam mereu spatii libera de la casuta 0 pana la `sizeof(hashmap)`. Asta dadea un throughput
+		mult subunitar, de 0.00...
+		Am aflat de la un coleg ca trebuie sa pornesc de la casuta data de hash in sus, apoi  de la 0 daca nu gasesc.
+		Asta a fost foarte logic dupa ce am aflat, pentru ca daca mereu caut de la 0, dupa primele inserari se va umple
+		tot inceputul hashmap-ului si de-aia aveam rezultate foarte proaste pe masura ce inseram mai multe date.
+
+Ce ar putea fi optimizat:
+	Ca idee, as optimiza, dar am pierdut atat de mult timp testand tema si facand debug crezand ca problema este de la mine
+	si nu de la coada de testare, incat ma bucur doar ca au trecut testele si am luat 90 si nu mai vreau sa optimizez nimic.
+
+	1. Setarea fiecarui element 0 dupa ce aloc o zona de memorie. Cred ca asta este o problema de la coada si ar merge sa
+		trec inapoi la `cudaMemset`, dar poate e mai rapida varianta mea.
+	2. Daca vreau sa fac hashmap-ul de dimensiune numar impar, nu pot, va avea marimea +1 deoarece am 2 bucket-uri.
+		Puteam sa rezolv asta, dar era cod in plus de scris pentru un castig prea mic... pana la urma +1 intrare in hashmap
+		nu e asa mare lucru.
+	3. Introducerea valorii cu `atomicExch`: cred ca ar fi mers si fara operatia asta atomica, evitand lock/unlock si
+		probabil ar salva niste timp.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Rezultate bench.py:
+
+	the output is:
+    HASH_BATCH_INSERT, 1000000, 100, 81
+    HASH_BATCH_GET, 1000000, inf, 81.0052
+    -------------- Test T1 --------------
+    OK	 +10 pts	 HASH_BATCH_INSERT, 1000000, 100, 81
+    OK	 +10 pts	 HASH_BATCH_GET, 1000000, inf, 81.0052
+
+    TOTAL	 +20 pts
+
+    the output is:
+    HASH_BATCH_INSERT, 2000000, 200, 81
+    HASH_BATCH_GET, 2000000, 100, 81.0026
+    -------------- Test T2 --------------
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 200, 81
+    OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0026
+
+    TOTAL	 +10 pts
+
+    the output is
+    HASH_BATCH_INSERT, 2000000, 100, 81
+    HASH_BATCH_INSERT, 2000000, 100, 81
+    HASH_BATCH_GET, 2000000, 200, 81.0013
+    HASH_BATCH_GET, 2000000, 100, 81.0013
+    -------------- Test T3 --------------
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2000000, 100, 81
+    OK	 +5 pts	 HASH_BATCH_GET, 2000000, 200, 81.0013
+    OK	 +5 pts	 HASH_BATCH_GET, 2000000, 100, 81.0013
+
+    TOTAL	 +20 pts
+
+    the output is:
+    HASH_BATCH_INSERT, 2500000, 83.3333, 81
+    HASH_BATCH_INSERT, 2500000, 83.3333, 81
+    HASH_BATCH_INSERT, 2500000, 62.5, 81
+    HASH_BATCH_INSERT, 2500000, 62.5, 81
+    HASH_BATCH_GET, 2500000, 125, 81.0005
+    HASH_BATCH_GET, 2500000, 250, 81.0005
+    HASH_BATCH_GET, 2500000, 250, 81.0005
+    HASH_BATCH_GET, 2500000, 83.3333, 81.0005
+    -------------- Test T4 --------------
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 83.3333, 81
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 62.5, 81
+    OK	 +5 pts	 HASH_BATCH_INSERT, 2500000, 62.5, 81
+    OK	 +5 pts	 HASH_BATCH_GET, 2500000, 125, 81.0005
+    OK	 +5 pts	 HASH_BATCH_GET, 2500000, 250, 81.0005
+    OK	 +5 pts	 HASH_BATCH_GET, 2500000, 250, 81.0005
+    OK	 +5 pts	 HASH_BATCH_GET, 2500000, 83.3333, 81.0005
+
+    TOTAL	 +40 pts
+
+
+    TOTAL gpu_hashtable  90/90
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Rezultate rulare cu nvprof:
+
+	==29451== NVPROF is profiling process 29451, command: ./gpu_hashtable 2000000 2
+    ==29451== Profiling application: ./gpu_hashtable 2000000 2
+    ==29451== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   40.80%  10.846ms         3  3.6154ms  10.336us  6.5233ms  insert_keys(int*, int*, int, key_value_pair*, key_value_pair*, int)
+                   27.95%  7.4303ms         8  928.79us     960ns  1.4362ms  [CUDA memcpy HtoD]
+                   15.10%  4.0126ms         2  2.0063ms  1.2512ms  2.7613ms  get_keys(int*, int*, int, key_value_pair*, key_value_pair*, int)
+                   12.81%  3.4043ms         2  1.7022ms  1.4537ms  1.9507ms  [CUDA memcpy DtoH]
+                    3.34%  887.78us         6  147.96us  1.9840us  514.05us  move_bucket(key_value_pair*, key_value_pair*, key_value_pair*, int, int)
+      API calls:   90.32%  394.98ms        18  21.943ms  8.8380us  391.18ms  cudaMalloc
+                    3.67%  16.033ms        11  1.4576ms  7.4660us  6.5315ms  cudaDeviceSynchronize
+                    3.65%  15.945ms        10  1.5945ms  10.958us  3.6110ms  cudaMemcpy
+                    1.38%  6.0224ms        18  334.58us  11.218us  1.0754ms  cudaFree
+                    0.49%  2.1468ms       282  7.6120us     202ns  300.08us  cuDeviceGetAttribute
+                    0.34%  1.4854ms         3  495.12us  303.45us  878.04us  cuDeviceTotalMem
+                    0.10%  440.38us        11  40.034us  17.902us  195.72us  cudaLaunch
+                    0.04%  184.59us         3  61.529us  59.090us  63.268us  cuDeviceGetName
+                    0.01%  39.998us        10  3.9990us  1.2500us  11.248us  cudaMemset
+                    0.00%  18.663us        60     311ns     166ns  3.0810us  cudaSetupArgument
+                    0.00%  12.389us        11  1.1260us     420ns  6.3580us  cudaConfigureCall
+                    0.00%  5.2510us         6     875ns     283ns  2.8100us  cuDeviceGet
+                    0.00%  2.9080us         3     969ns     282ns  1.8160us  cuDeviceGetCount
+
+	Se observa ca insert-ul dureaza cel mai mult si get-ul de aproape 3 ori mai putin. Ambele calculeaza hash-ul pentru
+cheie si cauta loc sa o insereze / scoata, deci cred ca diferenta consta in faptul ca insert-ul face 2 scrieri atomice,
+una cu `atomicCAS` si una cu `atomicExch`, ceea ce implica si lock / unlock pe zona aceea de memorie, pe cand get-ul
+face o singura scriere, nesincrona.
+	Transferarea memoriei intre host si device dureaza a 2a cel mai mult: la insert si get, copiez perechile cheie - valoare
+adaugate / cautate in memoria VRAM, pentru a le putea citi in functiile kernel.
+	Transferarea memoriei intre device si host dureaza a 2a cel mai putin pentru ca este folosita numai dupa ce gasesc
+perechile cheie - valoare cautate si vreau sa le returnez hostului.
+	Cel mai putin dureaza reshape-ul, destul de suprinzator.
